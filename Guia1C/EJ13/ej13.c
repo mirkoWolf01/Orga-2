@@ -19,6 +19,8 @@ int main()
         cant_ap[val]++;
     }
     print_ap();
+
+    return 0;
 }
 
 void print_ap()
