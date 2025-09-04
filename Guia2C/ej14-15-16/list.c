@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include "list.h"
+
+list_t *listNew(type_t t)
+{
+    list_t *l = malloc(sizeof(list_t));
+    l->type = t; // l->type es equivalente a (*l).type
+    l->size = 0;
+    l->first = NULL;
+    return l;
+}
+void listAddFirst(list_t *l, void *data)
+{
+    node_t *n = malloc(sizeof(node_t));
+    switch (l->type)
+    {
+    case TypeFAT32:
+        n->data = (void *)copy_fat32((fat32_t *)data);
+        break;
+    case TypeEXT4:
+        n->data = (void *)copy_ext4((ext4_t *)data);
+        break;
+    case TypeNTFS:
+        n->data = (void *)copy_ntfs((ntfs_t *)data);
+        break;
+    }
+    n->next = l->first;
+    l->first = n;
+    l->size++;
+}
+
+// se asume: i < l->size
+void *listGet(list_t *l, uint8_t i)
+{
+    node_t *n = l->first;
+    for (uint8_t j = 0; j < i; j++)
+        n = n->next;
+    return n->data;
+}
+
+// se asume: i < l->size
+void *listRemove(list_t *l, uint8_t i)
+{
+    node_t *tmp = NULL;
+    void *data = NULL;
+    if (i == 0)
+    {
+        data = l->first->data;
+        tmp = l->first;
+        l->first = l->first->next;
+    }
+    else
+    {
+        node_t *n = l->first;
+        for (uint8_t j = 0; j < i - 1; j++)
+            n = n->next;
+        data = n->next->data;
+        tmp = n->next;
+        n->next = n->next->next;
+    }
+    free(tmp);
+    l->size--;
+    return data;
+}
+
+void listDelete(list_t *l)
+{
+    node_t *n = l->first;
+    while (n)
+    {
+        node_t *tmp = n;
+
+        n = n->next;
+        switch (l->type)
+        {
+        case TypeFAT32:
+            rm_fat32((fat32_t *)tmp->data);
+            break;
+        case TypeEXT4:
+            rm_ext4((ext4_t *)tmp->data);
+            break;
+        case TypeNTFS:
+            rm_ntfs((ntfs_t *)tmp->data);
+            break;
+        }
+        free(tmp);
+    }
+    free(l);
+}
+
+node_t *_listGetNode(list_t *l, uint8_t i)
+{
+    node_t *n = l->first;
+    for (uint8_t j = 0; j < i; j++)
+        n = n->next;
+    return n;
+}
+
+// Se da por hecho que a, b < l->size
+void listSwap(list_t *l, uint8_t a, uint8_t b)
+{
+    if (l->size < 2 || a == b)
+        return;
+
+    node_t *val_a = _listGetNode(l, a);
+    node_t *val_b = _listGetNode(l, b);
+
+    node_t *prev_a = NULL, *prev_b = NULL, *pos_a = NULL, *pos_b = NULL;
+
+    if (a > 0)
+        prev_a = _listGetNode(l, a - 1);
+    if (b > 0)
+        prev_b = _listGetNode(l, b - 1);
+    if (a < l->size - 1)
+        pos_a = _listGetNode(l, a + 1);
+    if (b < l->size - 1)
+        pos_b = _listGetNode(l, b + 1);
+
+    /* {fat32_t *val = prev_a->data;
+    printf("prev_a = %d\n", *val);}
+    {fat32_t *val = prev_b->data;
+    printf("prev_b = %d\n", *val);}
+    
+    {fat32_t *val = val_a->data;
+    printf("val_a = %d\n", *val);}
+    {fat32_t *val = val_b->data;
+    printf("val_b = %d\n", *val);}
+
+    {fat32_t *val = pos_a->data;
+    printf("pos_a = %d\n", *val);}
+    {fat32_t *val = pos_b->data;
+    printf("pos_b = %d\n", *val);} */
+
+    if(prev_a != NULL)
+        prev_a->next = val_b;
+    if(prev_b != NULL)
+    prev_b->next = val_a;
+    
+    
+    val_a->next = pos_b; 
+    val_b->next = pos_a;
+}
