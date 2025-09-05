@@ -102,8 +102,8 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
     if (l->size < 2 || a == b)
         return;
 
-    node_t *val_a = _listGetNode(l, a);
-    node_t *val_b = _listGetNode(l, b);
+    node_t *node_a = _listGetNode(l, a);
+    node_t *node_b = _listGetNode(l, b);
 
     node_t *prev_a = NULL, *prev_b = NULL, *pos_a = NULL, *pos_b = NULL;
 
@@ -116,27 +116,56 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
     if (b < l->size - 1)
         pos_b = _listGetNode(l, b + 1);
 
+    // Si alguno es el inicial, el otro pasa a serlo
+    if (a == 0)
+        l->first = node_b;
+    if (b == 0)
+        l->first = node_a;
+
     /* {fat32_t *val = prev_a->data;
     printf("prev_a = %d\n", *val);}
     {fat32_t *val = prev_b->data;
     printf("prev_b = %d\n", *val);}
-    
-    {fat32_t *val = val_a->data;
-    printf("val_a = %d\n", *val);}
-    {fat32_t *val = val_b->data;
-    printf("val_b = %d\n", *val);}
+
+    {fat32_t *val = node_a->data;
+    printf("node_a = %d\n", *val);}
+    {fat32_t *val = node_b->data;
+    printf("node_b = %d\n", *val);}
 
     {fat32_t *val = pos_a->data;
     printf("pos_a = %d\n", *val);}
     {fat32_t *val = pos_b->data;
     printf("pos_b = %d\n", *val);} */
 
-    if(prev_a != NULL)
-        prev_a->next = val_b;
-    if(prev_b != NULL)
-    prev_b->next = val_a;
-    
-    
-    val_a->next = pos_b; 
-    val_b->next = pos_a;
+    // Si no son adyacentes
+    if (abs(a - b) > 1)
+    {
+        if (prev_a != NULL)
+            prev_a->next = node_b;
+
+        if (prev_b != NULL)
+            prev_b->next = node_a;
+
+        node_a->next = pos_b;
+        node_b->next = pos_a;
+    }
+    // Si lo son, y a es menor
+    else if (a < b)
+    {
+        if (prev_a != NULL)
+            prev_a->next = node_b;
+
+        node_a->next = pos_b;
+        node_b->next = node_a;
+    }
+    // Si lo son, y a es menor
+    else
+    {
+        if (prev_b != NULL)
+            prev_b->next = node_a;
+
+        node_a->next = node_b;
+        node_b->next = pos_a;
+    }
+    return;
 }

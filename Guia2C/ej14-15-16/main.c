@@ -23,7 +23,7 @@ int main()
     listAddFirst(l, f2);
     listAddFirst(l, f1);
 
-    listSwap(l, 2, 3); // 1 2 3 4 5
+    listSwap(l, 4, 3); // 1 2 3 4 5
 
     for (int i = 0; i < l->size; i++)
     {
