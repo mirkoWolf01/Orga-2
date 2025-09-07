@@ -14,18 +14,7 @@ list_t *listNew(type_t t)
 void listAddFirst(list_t *l, void *data)
 {
     node_t *n = malloc(sizeof(node_t));
-    switch (l->type)
-    {
-    case TypeFAT32:
-        n->data = (void *)copy_fat32((fat32_t *)data);
-        break;
-    case TypeEXT4:
-        n->data = (void *)copy_ext4((ext4_t *)data);
-        break;
-    case TypeNTFS:
-        n->data = (void *)copy_ntfs((ntfs_t *)data);
-        break;
-    }
+    n->data = getCopyFunction(l->type)(data);
     n->next = l->first;
     n->former = NULL;
     if (l->first != NULL)
@@ -39,18 +28,7 @@ void listAddFirst(list_t *l, void *data)
 void listaAddLast(list_t *l, void *data)
 {
     node_t *n = malloc(sizeof(node_t));
-    switch (l->type)
-    {
-    case TypeFAT32:
-        n->data = (void *)copy_fat32((fat32_t *)data);
-        break;
-    case TypeEXT4:
-        n->data = (void *)copy_ext4((ext4_t *)data);
-        break;
-    case TypeNTFS:
-        n->data = (void *)copy_ntfs((ntfs_t *)data);
-        break;
-    }
+    n->data = getCopyFunction(l->type)(data);
     n->former = l->last;
     n->next = NULL;
     if (l->last != NULL)
@@ -114,18 +92,7 @@ void listDelete(list_t *l)
         node_t *tmp = n;
 
         n = n->next;
-        switch (l->type)
-        {
-        case TypeFAT32:
-            rm_fat32((fat32_t *)tmp->data);
-            break;
-        case TypeEXT4:
-            rm_ext4((ext4_t *)tmp->data);
-            break;
-        case TypeNTFS:
-            rm_ntfs((ntfs_t *)tmp->data);
-            break;
-        }
+        getRmFunction(l->type)(tmp->data);
         free(tmp);
     }
     free(l);

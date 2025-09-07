@@ -36,7 +36,7 @@ int main()
     }
 
     // PARA TESTEAR
-    int n = 3;
+    int n = 4;
     node_t *nodo = _listGetNode(l, n);
     fat32_t *former = nodo->former->data;
 
