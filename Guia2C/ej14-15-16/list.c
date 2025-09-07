@@ -7,8 +7,10 @@ list_t *listNew(type_t t)
     l->type = t; // l->type es equivalente a (*l).type
     l->size = 0;
     l->first = NULL;
+    l->last = NULL;
     return l;
 }
+
 void listAddFirst(list_t *l, void *data)
 {
     node_t *n = malloc(sizeof(node_t));
@@ -25,7 +27,37 @@ void listAddFirst(list_t *l, void *data)
         break;
     }
     n->next = l->first;
+    n->former = NULL;
+    if (l->first != NULL)
+        l->first->former = n;
+    else
+        l->last = n;
     l->first = n;
+    l->size++;
+}
+
+void listaAddLast(list_t *l, void *data)
+{
+    node_t *n = malloc(sizeof(node_t));
+    switch (l->type)
+    {
+    case TypeFAT32:
+        n->data = (void *)copy_fat32((fat32_t *)data);
+        break;
+    case TypeEXT4:
+        n->data = (void *)copy_ext4((ext4_t *)data);
+        break;
+    case TypeNTFS:
+        n->data = (void *)copy_ntfs((ntfs_t *)data);
+        break;
+    }
+    n->former = l->last;
+    n->next = NULL;
+    if (l->last != NULL)
+        l->last->next = n;
+    else
+        l->first = n;
+    l->last = n;
     l->size++;
 }
 
@@ -43,11 +75,18 @@ void *listRemove(list_t *l, uint8_t i)
 {
     node_t *tmp = NULL;
     void *data = NULL;
+
     if (i == 0)
     {
         data = l->first->data;
         tmp = l->first;
         l->first = l->first->next;
+    }
+    else if (i == l->size - 1)
+    {
+        data = l->last->data;
+        tmp = l->last;
+        l->last = l->last->former;
     }
     else
     {
@@ -56,8 +95,12 @@ void *listRemove(list_t *l, uint8_t i)
             n = n->next;
         data = n->next->data;
         tmp = n->next;
-        n->next = n->next->next;
+
+        n->next = tmp->next;
+        if (tmp->next != NULL)
+            tmp->next->former = n;
     }
+
     free(tmp);
     l->size--;
     return data;
@@ -105,37 +148,21 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
     node_t *node_a = _listGetNode(l, a);
     node_t *node_b = _listGetNode(l, b);
 
-    node_t *prev_a = NULL, *prev_b = NULL, *pos_a = NULL, *pos_b = NULL;
-
-    if (a > 0)
-        prev_a = _listGetNode(l, a - 1);
-    if (b > 0)
-        prev_b = _listGetNode(l, b - 1);
-    if (a < l->size - 1)
-        pos_a = _listGetNode(l, a + 1);
-    if (b < l->size - 1)
-        pos_b = _listGetNode(l, b + 1);
+    node_t *prev_a = node_a->former,
+           *prev_b = node_b->former,
+           *pos_a = node_a->next,
+           *pos_b = node_b->next;
 
     // Si alguno es el inicial, el otro pasa a serlo
     if (a == 0)
         l->first = node_b;
+    else if (a == l->size - 1)
+        l->last = node_b;
+
     if (b == 0)
         l->first = node_a;
-
-    /* {fat32_t *val = prev_a->data;
-    printf("prev_a = %d\n", *val);}
-    {fat32_t *val = prev_b->data;
-    printf("prev_b = %d\n", *val);}
-
-    {fat32_t *val = node_a->data;
-    printf("node_a = %d\n", *val);}
-    {fat32_t *val = node_b->data;
-    printf("node_b = %d\n", *val);}
-
-    {fat32_t *val = pos_a->data;
-    printf("pos_a = %d\n", *val);}
-    {fat32_t *val = pos_b->data;
-    printf("pos_b = %d\n", *val);} */
+    else if (b == l->size - 1)
+        l->last = node_a;
 
     // Si no son adyacentes
     if (abs(a - b) > 1)
@@ -146,8 +173,17 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
         if (prev_b != NULL)
             prev_b->next = node_a;
 
+        if (pos_a != NULL)
+            pos_a->former = node_b;
+
+        if (pos_b != NULL)
+            pos_b->former = node_a;
+
         node_a->next = pos_b;
+        node_a->former = prev_b;
+
         node_b->next = pos_a;
+        node_b->former = prev_a;
     }
     // Si lo son, y a es menor
     else if (a < b)
@@ -156,7 +192,10 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
             prev_a->next = node_b;
 
         node_a->next = pos_b;
+        node_a->former = node_b;
+
         node_b->next = node_a;
+        node_b->former = prev_a;
     }
     // Si lo son, y a es menor
     else
@@ -165,7 +204,10 @@ void listSwap(list_t *l, uint8_t a, uint8_t b)
             prev_b->next = node_a;
 
         node_a->next = node_b;
+        node_a->former = prev_b;
+
         node_b->next = pos_a;
+        node_b->former = node_a;
     }
     return;
 }
