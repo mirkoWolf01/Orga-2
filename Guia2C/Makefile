@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -g -Wall -Wextra -pedantic
-TARGET = algo
+CFLAGS = -Wall -Wextra -pedantic
+TARGET = ej19
 
 all: $(TARGET)
 	
