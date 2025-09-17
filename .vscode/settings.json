@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.Makefile": "makefile",
+        "cstdlib": "c",
+        "ejs.h": "c",
+        "test-utils.h": "c"
+    }
+}
