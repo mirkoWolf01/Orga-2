@@ -2,3 +2,8 @@
 	path = guia-ASM
 	url = https://github.com/mirkoWolf01/guia-ASM.git
 	branch = main
+
+[submodule "tp-simd-mirkoWolf01"]
+	path = tp-simd-mirkoWolf01
+	url = https://github.com/AyOC-exactas/tp-simd-mirkoWolf01.git
+	branch = entrega
